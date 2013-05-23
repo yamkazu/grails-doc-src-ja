@@ -2,9 +2,16 @@
 データバインディングとは、受信したリクエストパラメータを、オブジェクトのプロパティまたオブジェクト構造へ結合させる機能です。データバインディングでは、フォームから送信された文字列のリクエストパラメータを、必要な型への変換を行います。
 
 
+{hidden}
 h4. Map Based Binding
+{hidden}
+h4. マップベースのバインディング
 
+{hidden}
 The data binder is capable of converting and assigning values in a Map to properties of an object.  The binder will associate entries in the Map to properties of the object using the keys in the Map that have values which correspond to property names on the object.  The following code demonstrates the basics:
+{hidden}
+データバインダーにはマップからオブジェクトプロパティへの変換と値の割り当て機能が備わっています。
+このバインダーはマップからオブジェクトのプロパティへと、マップのキーとオブジェクト上のプロパティの名前が一致するエントリを結びつけます。
 
 {code:java}
 // grails-app/domain/Person.groovy
@@ -25,7 +32,10 @@ assert person.lastNaem == 'Gabriel'
 assert person.age == 63
 {code}
 
+{hidden}
 To update properties of a domain object you may assign a Map to the @properties@ property of the domain class:
+{hidden}
+ドメインオブジェクトのプロパティをアップデートするには、ドメインクラスの@properties@プロパティにマップを割り当てます。
 
 {code:java}
 def bindingMap = [firstName: 'Peter', lastName: 'Gabriel', age: 63]
@@ -38,7 +48,10 @@ assert person.lastNaem == 'Gabriel'
 assert person.age == 63
 {code}
 
+{hidden}
 The binder can populate a full graph of objects using Maps of Maps.
+{hidden}
+このバインダはマップのマップを使うことで完全なオブジェクトグラフを投入できます。
 
 {code:java}
 class Person {
@@ -66,9 +79,16 @@ assert person.homeAddress.county == 'Surrey'
 assert person.homeAddress.country == 'England'
 {code}
 
+{hidden}
 h4. Binding To Collections And Maps
+{hidden}
+h4. コレクションとマップへのバインディング
 
+{hidden}
 The data binder can populate and update Collections and Maps.  The following code shows a simple example of populating a @List@ of objects in a domain class:
+{hidden}
+データバインダーはコレクションとマップへの投入、または更新が可能です。
+以下のコードはドメインクラス内の@List@へ値を投入する簡単な例になります。
 
 {code:java}
 class Band {
@@ -98,10 +118,21 @@ assert band.albums[1].title == 'Nursery Cryme'
 assert band.albums[1].numberOfTracks == 7
 {code}
 
+{hidden}
 That code would work in the same way if @albums@ were an array instead of a @List@.
+{hidden}
+このコードは@albums@が@List@の代わりに配列の場合も、同じように問題なく動作するでしょう。
 
+{hidden}
 Note that when binding to a @Set@ the structure of the @Map@ being bound to the @Set@ is the same as that of a @Map@ being bound to a @List@ but since a @Set@ is unordered, the indexes don't necessarily correspond to the order of elements in the @Set@.  In the code example above, if @albums@ were a @Set@ instead of a @List@, the @bindingMap@ could look exactly the same but 'Foxtrot' might be the first album in the @Set@ or it might be the second.  When updating existing elements in a @Set@ the @Map@ being assigned to the @Set@ must have @id@ elements in it which represent the element in the @Set@ being updated, as in the following example:
+{hidden}
+@Set@のバインディング時に、@Map@構造の値を@Set@へ設定するのは、@Map@を@List@へ設定するのと同じです。
+しかし、@Set@は順序ほ保持しないため、@Set@要素の順番に対応するインデックスは必要ありません。
+上記のコード例でいうと、もし@albums@が@List@の代わりに@Set@の場合、@bindingMap@は同じように正しく見えますが、'Foxtrot'は@Set@の最初のアルバムかもしれないし、2番目のアルバムかもしれません。
+また、既存の@Set@要素を更新する場合は、@Map@を@Set@を割り当てる際に、@Map@内にアップデートする@Set@要素を表す@id@要素がなければなりません。
+以下に例を示しましょう。
 
+{hidden}
 {code}
 /*
  * The value of the indexes 0 and 1 in albums[0] and albums[1] are arbitrary
@@ -123,6 +154,36 @@ def band = Band.get(someBandId)
  * with the values described above.  If a Album with the specified id cannot be
  * found in the database, then a binding error will be created and associated
  * with the band object.  More on binding errors later.
+ */
+band.properties = bindingMap
+{code}
+{hidden}
+{code}
+/*
+ * albums[0]とalbums[1]のインデックス0と1の値はマップ内でユニークであれば
+ * どのような値でも設定できます。
+ * この値はalbums要素の順番に対応するわけではありません。なぜなら、
+ * albumsはセットだからです。
+ */
+def bindingMap = ['albums[0]': [id: 9, title: 'The Lamb Lies Down On Broadway']
+                  'albums[1]': [id: 4, title: 'Selling England By The Pound']]
+
+def band = Band.get(someBandId)
+
+/*
+ * This will find the Album in albums that has an id of 9 and will set its title
+ * to 'The Lamb Lies Down On Broadway' and will find the Album in albums that has
+ * an id of 4 and set its title to 'Selling England By The Pound'.  In both 
+ * cases if the Album cannot be found in albums then the album will be retrieved
+ * from the database by id, the Album will be added to albums and will be updated 
+ * with the values described above.  If a Album with the specified id cannot be
+ * found in the database, then a binding error will be created and associated
+ * with the band object.  More on binding errors later.
+ * これはalbumsの中からidが9のAlbumを見つけtitleに'The Lamb Lies Down On Broadway'
+ * を設定し、idが4のAlbumにはtitleに'Selling England By The Pound'を設定します。
+ * この両方ケースでは、もしAlbumがalbumsの中から見つからなかった場合、idによって
+ * データベースからalbumを取得し、albumsに加えられ、そして上記で説明したタイトルの
+ * 値で更新されるでしょう。
  */
 band.properties = bindingMap
 {code}
